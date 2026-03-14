@@ -11,6 +11,17 @@ const ConnectionSchema = new Schema({
     enum: ["google", "outlook"],
     required: true,
   },
+  username: {
+    type: String,
+    required: true,
+  },
+  imageUrl: {
+    type: String,
+  },
+  email: {
+    type: String,
+    required: true,
+  },
   providerAccountId: {
     type: String,
     required: true,

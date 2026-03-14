@@ -1,30 +1,53 @@
 import mongoose, { model, models, Schema } from "mongoose";
 
-const UserSchema = new Schema({
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  name: {
-    type: String,
-  },
-  image: {
-    type: String,
-  },
-  connectedAccounts: [
-    {
-      type: Schema.Types.ObjectId,
-      ref: "Connection",
+export type UserDocument = {
+  _id: mongoose.Types.ObjectId;
+  email: string;
+  passwordHash: string;
+  name?: string;
+  image?: string;
+  connectedAccounts: mongoose.Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+const UserSchema = new Schema<UserDocument>(
+  {
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+      lowercase: true,
+      trim: true,
     },
-  ],
-  createdAt: {
-    type: Date,
-    default: Date.now,
+    passwordHash: {
+      type: String,
+      required: true,
+    },
+    name: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    image: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    connectedAccounts: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Connection",
+      },
+    ],
   },
-});
+  {
+    timestamps: true,
+  },
+);
 
 export const User =
-  (models.User as mongoose.Model<unknown>) || model("User", UserSchema);
+  (models.User as mongoose.Model<UserDocument>) ||
+  model<UserDocument>("User", UserSchema);
 
 export default User;

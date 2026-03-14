@@ -127,3 +127,9 @@
     @apply font-sans;
   }
 }
+
+@layer utilities {
+  .page-container {
+    @apply min-h-[calc(100vh-75px)];
+  }
+}
