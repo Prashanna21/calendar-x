@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getSessionUser } from "@/src/lib/session";
 import DashboardSection from "./_components/DashboardSection";
 import ConnectionSection from "./_components/ConnectionSection";
+import CustomCalendarSection from "./_components/CustomCalendarSection";
 
 export default async function DashboardPage() {
   const user = await getSessionUser();
@@ -15,6 +16,8 @@ export default async function DashboardPage() {
       <DashboardSection />
 
       <ConnectionSection />
+
+      <CustomCalendarSection />
     </main>
   );
 }

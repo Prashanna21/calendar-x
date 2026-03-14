@@ -133,3 +133,22 @@
     @apply min-h-[calc(100vh-75px)];
   }
 }
+
+.fc .fc-masked-event {
+  min-height: 0.95rem;
+}
+
+.fc .fc-masked-event .fc-event-main {
+  min-height: 0.95rem;
+  min-width: 1.5rem;
+  padding: 0;
+}
+
+.fc .fc-daygrid-event.fc-masked-event {
+  min-width: 1.5rem;
+}
+
+.fc .fc-daygrid-event.fc-masked-event .fc-event-time,
+.fc .fc-timegrid-event.fc-masked-event .fc-event-time {
+  display: none;
+}

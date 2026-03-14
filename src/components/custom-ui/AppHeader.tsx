@@ -1,15 +1,18 @@
 import Image from "next/image";
 import { Button } from "../ui/button";
 import { getSessionUser } from "@/src/lib/session";
-import { redirect } from "next/navigation";
 import AuthButton from "./AuthButton";
+import ClientRedirectComponent from "./ClientRedirectComponent";
 
 async function AppHeader() {
   const user = await getSessionUser();
 
   return (
     <div className="w-full h-[75px] shadow-md flex px-[40px] items-center sticky top-0 left-0 bg-background z-10">
-      <div className="flex items-center">
+      <ClientRedirectComponent
+        redirectUrl="/"
+        className="flex items-center cursor-pointer"
+      >
         <Image
           src="/Calendar.png"
           alt="Calendar X Logo"
@@ -23,7 +26,7 @@ async function AppHeader() {
             Calendar app built with Next.js 13
           </p>
         </div>
-      </div>
+      </ClientRedirectComponent>
 
       <div className="ml-auto flex gap-2 items-center">
         <a>
