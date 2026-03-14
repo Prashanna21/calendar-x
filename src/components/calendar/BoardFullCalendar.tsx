@@ -23,6 +23,7 @@ export default function BoardFullCalendar({
     title: masked ? "Masked event" : event.title,
     start: event.startAt,
     end: event.endAt,
+    allDay: Boolean(event.allDay),
     backgroundColor: event.color || "#64748b",
     borderColor: event.color || "#64748b",
     textColor: "#ffffff",

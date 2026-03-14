@@ -41,6 +41,7 @@ export type BoardEvent = {
   title: string;
   maskedTitle: string;
   isMasked: boolean;
+  allDay?: boolean;
   startAt: string;
   endAt: string;
   color?: string;
@@ -298,6 +299,52 @@ function toIsoDateTime(value?: string, fallback?: string) {
   return date.toISOString();
 }
 
+function normalizeMicrosoftDateTime(
+  value?: string,
+  timeZone?: string,
+  fallback?: string,
+) {
+  if (!value && fallback) {
+    return fallback;
+  }
+
+  if (!value) {
+    return new Date().toISOString();
+  }
+
+  const normalizedValue = value.trim().replace(/\.(\d{3})\d+/, ".$1");
+
+  const hasExplicitOffset = /([zZ]|[+-]\d{2}:\d{2})$/.test(normalizedValue);
+
+  if (hasExplicitOffset) {
+    return toIsoDateTime(normalizedValue, fallback);
+  }
+
+  const normalizedTimeZone = timeZone?.trim().toLowerCase();
+  const isUtcTimeZone =
+    normalizedTimeZone === "utc" ||
+    normalizedTimeZone === "etc/utc" ||
+    normalizedTimeZone === "coordinated universal time";
+
+  if (isUtcTimeZone) {
+    return toIsoDateTime(`${normalizedValue}Z`, fallback);
+  }
+
+  return toIsoDateTime(normalizedValue, fallback);
+}
+
+function toDateOnly(value?: string, fallback?: string) {
+  if (!value && fallback) {
+    return fallback;
+  }
+
+  if (!value) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  return value.slice(0, 10);
+}
+
 async function fetchGoogleBoardEvents(
   connection: ConnectionDoc,
   selectedCalendar: BoardCalendar,
@@ -352,11 +399,13 @@ async function fetchGoogleBoardEvents(
   return (json.items || []).map((event) => {
     const title = event.summary || "Busy";
     const maskedTitle = selectedCalendar.calendarName || boardName || "Busy";
-    const startAt = toIsoDateTime(event.start?.dateTime || event.start?.date);
-    const endAt = toIsoDateTime(
-      event.end?.dateTime || event.end?.date,
-      startAt,
-    );
+    const isAllDay = Boolean(event.start?.date && !event.start?.dateTime);
+    const startAt = isAllDay
+      ? event.start?.date || new Date().toISOString().slice(0, 10)
+      : toIsoDateTime(event.start?.dateTime || event.start?.date);
+    const endAt = isAllDay
+      ? event.end?.date || startAt
+      : toIsoDateTime(event.end?.dateTime || event.end?.date, startAt);
 
     return {
       id: `${selectedCalendar.provider}:${selectedCalendar.calendarId}:${event.id}`,
@@ -366,6 +415,7 @@ async function fetchGoogleBoardEvents(
       title,
       maskedTitle,
       isMasked: masked,
+      allDay: isAllDay,
       startAt,
       endAt,
       color: selectedCalendar.color,
@@ -390,10 +440,13 @@ async function fetchMicrosoftBoardEvents(
   );
   fetchUrl.searchParams.set("startDateTime", dateWindow.startIso);
   fetchUrl.searchParams.set("endDateTime", dateWindow.endIso);
-  fetchUrl.searchParams.set("$select", "id,subject,start,end");
+  fetchUrl.searchParams.set("$select", "id,subject,isAllDay,start,end");
 
   let res = await fetch(fetchUrl.toString(), {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      Prefer: 'outlook.timezone="UTC"',
+    },
     cache: "no-store",
   });
 
@@ -405,7 +458,10 @@ async function fetchMicrosoftBoardEvents(
 
     accessToken = refreshed;
     res = await fetch(fetchUrl.toString(), {
-      headers: { Authorization: `Bearer ${accessToken}` },
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        Prefer: 'outlook.timezone="UTC"',
+      },
       cache: "no-store",
     });
   }
@@ -418,16 +474,29 @@ async function fetchMicrosoftBoardEvents(
     value?: Array<{
       id: string;
       subject?: string;
-      start?: { dateTime?: string };
-      end?: { dateTime?: string };
+      isAllDay?: boolean;
+      start?: { dateTime?: string; timeZone?: string };
+      end?: { dateTime?: string; timeZone?: string };
     }>;
   };
 
   return (json.value || []).map((event) => {
     const title = event.subject || "Busy";
     const maskedTitle = selectedCalendar.calendarName || boardName || "Busy";
-    const startAt = toIsoDateTime(event.start?.dateTime);
-    const endAt = toIsoDateTime(event.end?.dateTime, startAt);
+    const isAllDay = Boolean(event.isAllDay);
+    const startAt = isAllDay
+      ? toDateOnly(event.start?.dateTime)
+      : normalizeMicrosoftDateTime(
+          event.start?.dateTime,
+          event.start?.timeZone,
+        );
+    const endAt = isAllDay
+      ? toDateOnly(event.end?.dateTime, startAt)
+      : normalizeMicrosoftDateTime(
+          event.end?.dateTime,
+          event.end?.timeZone,
+          startAt,
+        );
 
     return {
       id: `${selectedCalendar.provider}:${selectedCalendar.calendarId}:${event.id}`,
@@ -437,6 +506,7 @@ async function fetchMicrosoftBoardEvents(
       title,
       maskedTitle,
       isMasked: masked,
+      allDay: isAllDay,
       startAt,
       endAt,
       color: selectedCalendar.color,

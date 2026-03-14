@@ -29,15 +29,15 @@ async function AppHeader() {
       </ClientRedirectComponent>
 
       <div className="ml-auto flex gap-2 items-center">
-        <a>
+        <a href="https://github.com/Prashanna21/calendar-x">
           <Button variant="outline" size="sm">
             View on GitHub
           </Button>
         </a>
 
-        <a>
+        <a href="https://drive.google.com/drive/folders/1RFpCR6yuhuwDn6Pi8zTrdGJO6GTZCmOS?usp=sharing">
           <Button variant="default" size="sm">
-            Download CV
+            View CV
           </Button>
         </a>
         {user && (

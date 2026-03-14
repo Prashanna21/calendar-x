@@ -26,7 +26,11 @@ export function LoginForm() {
     <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Login</CardTitle>
-        <CardDescription>Login with your email and password.</CardDescription>
+        <CardDescription>
+          Login with your email and password. <br /> Test credentials:
+          test@gmail.com <br />
+          Password: Admin@123
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <form action={formAction} className="space-y-4">
