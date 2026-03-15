@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { headers } from "next/headers";
 import {
   Card,
   CardContent,
@@ -10,6 +11,9 @@ import BoardFullCalendar from "../../../components/calendar/BoardFullCalendar";
 import { getBoardEvents } from "@/src/lib/calendar-sync";
 import connectToDatabase from "@/src/lib/mongodb";
 import Board from "@/src/models/Board";
+import ShareBoardLink from "@/src/components/custom-ui/share-board-link";
+
+export const dynamic = "force-dynamic";
 
 type BoardPageProps = {
   params: Promise<{ id: string }>;
@@ -43,18 +47,28 @@ export default async function BoardPreviewPage({ params }: BoardPageProps) {
     notFound();
   }
 
+  const headerStore = await headers();
+  const protocol = headerStore.get("x-forwarded-proto") || "https";
+  const host = headerStore.get("x-forwarded-host") || headerStore.get("host");
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL;
+  const origin = host ? `${protocol}://${host}` : appUrl || "";
+  const shareUrl = `${origin}/board/${board._id}`;
+
   const events = await getBoardEvents(board);
 
   return (
     <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-6 p-6">
       <Card>
-        <CardHeader>
-          <CardTitle>{board.name}</CardTitle>
-          <CardDescription>
-            {board.visibility?.masked ? "Masked" : "Unmasked"} events • Past{" "}
-            {board.visibility?.pastDays ?? 0} days • Future{" "}
-            {board.visibility?.futureDays ?? 14} days
-          </CardDescription>
+        <CardHeader className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+          <div>
+            <CardTitle>{board.name}</CardTitle>
+            <CardDescription>
+              {board.visibility?.masked ? "Masked" : "Unmasked"} events • Past{" "}
+              {board.visibility?.pastDays ?? 0} days • Future{" "}
+              {board.visibility?.futureDays ?? 14} days
+            </CardDescription>
+          </div>
+          <ShareBoardLink shareUrl={shareUrl} />
         </CardHeader>
       </Card>
 

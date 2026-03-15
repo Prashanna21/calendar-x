@@ -14,6 +14,10 @@ type CustomBoardFormProps = {
 export default function CustomBoardForm({ calendars }: CustomBoardFormProps) {
   const [hidePastEvents, setHidePastEvents] = useState(false);
   const [pastDays, setPastDays] = useState(7);
+  const origin =
+    typeof window === "undefined"
+      ? "https://your-domain.com"
+      : window.location.origin;
 
   const onToggleHidePast = (checked: boolean) => {
     setHidePastEvents(checked);
@@ -136,6 +140,14 @@ export default function CustomBoardForm({ calendars }: CustomBoardFormProps) {
       <Button type="submit" disabled={calendars.length === 0}>
         Create Board
       </Button>
+
+      <div className="rounded-md border p-3">
+        <p className="text-sm font-medium">Shareable board link</p>
+        <p className="text-xs text-muted-foreground">
+          Each board you create gets a public link that always shows the latest
+          board settings and events from your connected calendars.
+        </p>
+      </div>
     </form>
   );
 }

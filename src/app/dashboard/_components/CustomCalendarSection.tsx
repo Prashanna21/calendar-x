@@ -12,6 +12,7 @@ import connectToDatabase from "@/src/lib/mongodb";
 import { getSessionUser } from "@/src/lib/session";
 import Board from "@/src/models/Board";
 import CustomBoardForm from "@/src/components/forms/custom-board-form";
+import CopyBoardLinkButton from "@/src/components/custom-ui/copy-board-link-button";
 
 type BoardListItem = {
   _id: string;
@@ -60,25 +61,34 @@ export default async function CustomCalendarSection() {
             </p>
           ) : (
             <div className="space-y-2">
-              {boards.map((board) => (
-                <div key={board._id} className="rounded-md border p-3">
-                  <p className="font-medium">{board.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {board.selectedCalendars.length} calendar(s) selected
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {board.visibility?.masked ? "Masked" : "Unmasked"} • Past{" "}
-                    {board.visibility?.pastDays ?? 0}d • Future{" "}
-                    {board.visibility?.futureDays ?? 14}d
-                  </p>
-                  <Link
-                    href={`/board/${board._id}`}
-                    className="mt-2 inline-block text-sm font-medium text-foreground underline underline-offset-4"
-                  >
-                    Open board preview
-                  </Link>
-                </div>
-              ))}
+              {boards.map((board) => {
+                const boardId = String(board._id);
+
+                return (
+                  <div key={boardId} className="rounded-md border p-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium">{board.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {board.selectedCalendars.length} calendar(s) selected
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {board.visibility?.masked ? "Masked" : "Unmasked"} •
+                          Past {board.visibility?.pastDays ?? 0}d • Future{" "}
+                          {board.visibility?.futureDays ?? 14}d
+                        </p>
+                        <Link
+                          href={`/board/${boardId}`}
+                          className="mt-2 inline-block text-sm font-medium text-foreground underline underline-offset-4"
+                        >
+                          Open board preview
+                        </Link>
+                      </div>
+                      <CopyBoardLinkButton boardId={boardId} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
         </div>
